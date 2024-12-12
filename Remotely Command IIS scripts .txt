@@ -1,0 +1,47 @@
+Server: 172.16.10.3
+Name: Server-3-test
+username: adva-admin
+pass: Testing#Adv@246
+
+-------------------------------------------
+1- set (net use) to map a network sharig folder locally for ease of access to the shared folder:
+net use E: \\172.16.10.3\SalamtakApp /user:adva-admin [Testing#Adv@246]
+
+---------------------------------------------
+2- Set the servers in the TrustedHost:
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "172.16.10.3"
+
+3- Verify the TrustedHost list on both (Local & Remote Servers):
+Get-Item WSMan:\localhost\Client\TrustedHosts
+
+--------------------------------------------------
+4- On the Remote Serevr LocalAccountTokenFilterPolicy needs to be set to allow administrative rights for local accounts during remote access.
+5- To do that you need Run the following commands on the remote server to confirm WinRM is properly configured:
+
+(winrm quickconfig)
+
+If repiled with the following error the Remote Management is not configured:
+
+WinRM service is already running on this machine.
+WinRM is not set up to allow remote access to this machine for management.
+The following changes must be made:
+
+Configure LocalAccountTokenFilterPolicy to grant administrative rights remotely to local users.
+
+Make these changes [y/n]?
+
+6- Allow by choose (y) to allow the Remote Management
+
+What happened if choosed (y):
+The LocalAccountTokenFilterPolicy value in rigistry changed from (0) to (1)
+
+By Default it's set (0) and to allow set (1)
+---------------------------------------------------
+
+7- After enabling remote access, go back to your Jenkins server or local server and run/test the invoke-command:
+
+Invoke-Command -Computername Server-3-test -Scriptblock { 
+    (Import-Module WebAdministration);  
+    Stop-Website -Name "SalamtakApp"
+}
+
